@@ -1,6 +1,6 @@
 """Person class that represents a person."""
 from dataclasses import dataclass, field
-from typing import List
+from typing import ClassVar, List
 
 from lib.utils import validate_email
 
