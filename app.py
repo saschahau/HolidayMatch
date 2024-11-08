@@ -1,18 +1,13 @@
 import streamlit as st
 
-from lib.handlers import (
-    handle_start, 
-    handle_user_preferences, 
-    handle_matcher)
 from features.travelagent import Agent
 from lib.states import AppState, Stage
 
-
 def app():
-    st.set_page_config(page_title="HolidayMatch", page_icon="🌍")
+    """Main function for the Streamlit app."""
 
-    st.title('Welcome to HolidayMatch')
-    st.write('Your AI-powered travel assistant!')
+    # Set the page title and favicon
+    st.set_page_config(page_title="HolidayMatch", page_icon="🌍")
 
     # Instantiate the app state
     if "app_state" not in st.session_state:
@@ -33,8 +28,15 @@ def app():
         else:
             openai_api_key = st.secrets["openai_key"]
         st.session_state.travel_agent_instance = Agent(openai_api_key)
-    travel_agent = st.session_state.travel_agent_instance
+    
+    # Import the handlers after the app state and travel agent are instantiated
+    from lib.handlers import (
+        handle_start, 
+        handle_user_preferences, 
+        handle_matcher
+    )
 
+    # Handler mapping
     stage_handlers = {
         Stage.START: handle_start,
         Stage.USER_PREFERENCES: handle_user_preferences,
@@ -43,21 +45,9 @@ def app():
 
     handler = stage_handlers.get(st.session_state.app_state.stage)
     if handler:
+        print(f"Handler found: {handler.__name__}")        
         handler()
-
-    # Get user input
-    # This is only a temporary solution until the preference builder is implemented
-    user_input = st.text_area("Enter your message", "")
-
-    if st.button('Get suggestions'):
-        with st.spinner("Retrieving answer..."):
-            response = travel_agent.get_travel_suggestions(user_input)
-        st.write(response)
-
-        st.subheader("History")
-        for entry in travel_agent.responses:
-            st.write(f"Q: {entry['question']}")
-            st.write(entry['response'])
-
+        print(st.session_state.app_state.stage)
+            
 if __name__ == '__main__':
     app()

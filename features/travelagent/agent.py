@@ -1,5 +1,3 @@
-import json
-import openai
 from datetime import datetime
 
 from features.travelagent.recommendation_engine import RecommendationEngine
