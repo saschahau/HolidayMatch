@@ -38,6 +38,6 @@ def app():
         for entry in travel_agent.responses:
             st.write(f"Q: {entry['question']}")
             st.write(entry['response'])
-
+            
 if __name__ == '__main__':
     app()
