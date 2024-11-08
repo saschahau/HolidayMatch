@@ -44,10 +44,8 @@ def app():
     }
 
     handler = stage_handlers.get(st.session_state.app_state.stage)
-    if handler:
-        print(f"Handler found: {handler.__name__}")        
+    if handler:     
         handler()
-        print(st.session_state.app_state.stage)
             
 if __name__ == '__main__':
     app()

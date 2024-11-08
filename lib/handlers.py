@@ -24,6 +24,10 @@ if "travel_agent_instance" not in st.session_state:
     st.error("Travel agent instance not found. Please restart the app.")
 travel_agent = st.session_state.travel_agent_instance
 
+def update_ui():
+    """Render the UI for the current stage."""
+    st.rerun() # Rerun the app to render the next stage. This is necessary to update the UI because of Streamlits rerun behavior when interacting with input widgets.
+
 def handle_start():
     """Render the UI for the start stage."""
     print("Render start stage")
@@ -45,9 +49,9 @@ def handle_start():
     # Add a "Next" button if you want to proceed to the next step
     if st.button("Next"):
         app_state.set_stage(Stage.USER_PREFERENCES)
-        st.write(app_state)
         st.session_state.app_state = app_state
-        st.write(st.session_state.app_state)
+        update_ui()
+        
 
 def handle_user_preferences():
     """Render the UI for the user preferences stage."""
