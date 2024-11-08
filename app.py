@@ -1,12 +1,22 @@
 import streamlit as st
 
+from lib.handlers import (
+    handle_start, 
+    handle_user_preferences, 
+    handle_matcher)
 from features.travelagent import Agent
+from lib.states import AppState, Stage
+
 
 def app():
     st.set_page_config(page_title="HolidayMatch", page_icon="🌍")
 
     st.title('Welcome to HolidayMatch')
     st.write('Your AI-powered travel assistant!')
+
+    # Instantiate the app state
+    if "app_state" not in st.session_state:
+        st.session_state.app_state = AppState()
 
     # Instantiate the travel agent
     if "travel_agent_instance" not in st.session_state:
@@ -24,6 +34,16 @@ def app():
             openai_api_key = st.secrets["openai_key"]
         st.session_state.travel_agent_instance = Agent(openai_api_key)
     travel_agent = st.session_state.travel_agent_instance
+
+    stage_handlers = {
+        Stage.START: handle_start,
+        Stage.USER_PREFERENCES: handle_user_preferences,
+        Stage.MATCHER: handle_matcher
+    }
+
+    handler = stage_handlers.get(st.session_state.app_state.stage)
+    if handler:
+        handler()
 
     # Get user input
     # This is only a temporary solution until the preference builder is implemented
