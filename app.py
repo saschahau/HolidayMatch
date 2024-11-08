@@ -1,5 +1,7 @@
 import streamlit as st
 
+from features.travelagent import Agent
+
 def app():
     st.set_page_config(page_title="HolidayMatch", page_icon="🌍")
 
