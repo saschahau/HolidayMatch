@@ -10,7 +10,19 @@ def app():
 
     # Instantiate the travel agent
     if "travel_agent_instance" not in st.session_state:
-        st.session_state.travel_agent_instance = Agent(st.secrets['openai_key'])
+        openai_api_key = None
+        if "openai_key" not in st.secrets:
+            if "chatbot_api_key" not in st.session_state:                
+                st.write("Please provide your OpenAI API key")
+                openai_api_key = st.text_input("OpenAI API key", key="chatbot_api_key", type="password")
+
+            openai_api_key = st.session_state.chatbot_api_key
+            if not openai_api_key:
+                st.info("Please add your OpenAI API key to continue.")
+                st.stop()
+        else:
+            openai_api_key = st.secrets["openai_key"]
+        st.session_state.travel_agent_instance = Agent(openai_api_key)
     travel_agent = st.session_state.travel_agent_instance
 
     # Get user input
