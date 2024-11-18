@@ -1,6 +1,11 @@
 import json
 import openai
 from datetime import datetime
+from pydantic import TypeAdapter
+from typing import List
+
+from features.travelagent.destination import Destination
+
 
 class RecommendationEngine:
     """Recoomendation Engine class to interact with the OpenAI API."""
@@ -41,12 +46,12 @@ class RecommendationEngine:
             }
         }
 
-    def generate_destination_recommendations(self, preferences):
+    def generate_destination_recommendations(self, preferences, model = "gpt-4o"):
         """ Get response from the AI model. """
         prompt = f"Suggest 5 distinct travel destinations for the following user preferences: {preferences}. To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accomodation."
 
         response = openai.chat.completions.create(
-            model="gpt-4o",
+            model=model,
             messages=[
                 {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
                 {"role": "user", "content": prompt},
@@ -55,12 +60,13 @@ class RecommendationEngine:
             function_call = {"name": "get_travel_recommendations"}
         )
         output = response.choices[0].message.function_call.arguments
-        result = json.loads(output)
+        json_result = json.loads(output)
+        recommendations = TypeAdapter(List[Destination]).validate_python(json_result["destinations"])
         content = {
             'timestamp': datetime.now(),
             'preferences': preferences,
-            'response': result
+            'response': recommendations
         }
         self.response_history.append(content)
 
-        return content.get('response')
+        return recommendations

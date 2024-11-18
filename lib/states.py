@@ -1,3 +1,4 @@
+import enum
 from enum import Enum
 
 class Stage(Enum):
@@ -10,31 +11,39 @@ class Stage(Enum):
     RETRIEVE_NEW_SUGGESTIONS = "retrieve_new_suggestions"
 
 class AppState:
+    """
+
+    State pattern derived from: https://auth0.com/blog/state-pattern-in-python (18.11.2024)
+    """
     def __init__(self):
         self.__anonymous = True 
         self.stage = Stage.START
-        self.preferences = None
-        self.suggestions = list()
-        self.current_index = 0
+        self.user_preferences = None
         self.matched_destination = None
-        self.itiernary = None # Will be impolemented if time allows.
+        self.itinerary = None # Will be implemented if time allows.
 
     def reset(self):
         """ Reset the state. """
+        self.__anonymous = True
         self.stage = Stage.START
-        self.preferences = None
-        self.suggestions = list()
-        self.current_index = 0
+        self.user_preferences = None
         self.matched_destination = None
-        self.itiernary = None
+        self.itinerary = None
 
-    def set_stage(self, stage: Stage):
+    @property
+    def stage(self):
+        """Return the stage."""
+        return self._stage
+
+    @stage.setter
+    def stage(self, stage: Stage):
         """ Set a new stage. """
-        self.stage = stage
+        if isinstance(stage, Stage):
+            self._stage = stage
+        else:
+            raise TypeError("Please provide a valid Stage object.")
 
-    def next_stage(self):
-        """ Move to the next stage. """
-        self.stage = Stage(self.stage.value + 1)
+
 
     def get_is_anonymous(self):
         """ Check if the user is anonymous. """

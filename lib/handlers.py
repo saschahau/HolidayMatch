@@ -11,6 +11,8 @@ Example:
 """
 import streamlit as st
 
+from features.matcher import Matcher
+from features.travelagent.destination import Destination
 from lib.states import Stage
 
 # Get the app state from the session state
@@ -24,13 +26,14 @@ if "travel_agent_instance" not in st.session_state:
     st.error("Travel agent instance not found. Please restart the app.")
 travel_agent = st.session_state.travel_agent_instance
 
+
+
 def update_ui():
     """Render the UI for the current stage."""
     st.rerun() # Rerun the app to render the next stage. This is necessary to update the UI because of Streamlits rerun behavior when interacting with input widgets.
 
 def handle_start():
     """Render the UI for the start stage."""
-    print("Render start stage")
     # Welcome Message
     st.title("✈️ Welcome to HolidayMatch!")
     st.write("Your AI-powered travel planning assistant! Let's find your perfect holiday destination based on your preferences.")
@@ -48,30 +51,73 @@ def handle_start():
 
     # Add a "Next" button if you want to proceed to the next step
     if st.button("Next"):
-        app_state.set_stage(Stage.USER_PREFERENCES)
+        app_state.stage = Stage.USER_PREFERENCES
         st.session_state.app_state = app_state
         update_ui()
-        
 
 def handle_user_preferences():
     """Render the UI for the user preferences stage."""
-    print("Render user preferences stage")
     st.title('User Preferences')
     st.write('Please provide your travel preferences.')
     # Get user input
     # This is only a temporary solution until the preference builder is implemented
     user_input = st.text_area("Enter your message", "")
-
     if st.button('Get suggestions'):
+        app_state.user_preferences = user_input
         with st.spinner("Retrieving answer..."):
-            response = travel_agent.get_travel_recommendations(user_input)
-        st.write(response)
+            destination_recommendations = travel_agent.get_travel_recommendations(user_input)
+            if destination_recommendations:
+                # Create a new matcher
+                matcher = Matcher(destination_recommendations)
+                st.session_state.matcher = matcher
 
-        st.subheader("History")
-        for entry in travel_agent.responses:
-            st.write(f"Q: {entry['question']}")
-            st.write(entry['response'])
+                # Update the application state stage
+                app_state.stage = Stage.MATCHER
+                st.session_state.app_state = app_state
+        update_ui()
 
 def handle_matcher():
+    """Render the UI for the matching stage."""
+    if "matcher" not in st.session_state:
+        st.error("Matcher not found. Please restart the app.")
+        st.stop()
+    matcher = st.session_state.matcher
+
     st.title('Matcher')
     st.write('Matching your preferences with the best destinations...')
+
+    st.info(f"Current index: {matcher.get_index()}. Total suggestions: {matcher.get_recommendations_count()}")
+
+    suggestion: Destination | None = matcher.suggest()
+    if suggestion:
+        st.subheader(suggestion.name)
+        st.write(suggestion.description)
+        st.write(suggestion.travel_tips)
+
+        if st.button("Like"):
+            app_state.matched_destination = suggestion
+            app_state.stage = Stage.PRESENT_DETAILS
+            st.session_state.app_state = app_state
+            update_ui()
+
+        if st.button("Dislike"):
+            matcher.dislike()
+            update_ui()
+
+    else:
+        st.write("No more suggestions. Would you like to try again?")
+        if st.button("Get new suggestions"):
+            with st.spinner("Retrieving new suggestions..."):
+                destination_recommendations = travel_agent.get_travel_recommendations(app_state.user_preferences)
+                if destination_recommendations:
+                    matcher.replace_suggestions(destination_recommendations)
+                    st.session_state.matcher = matcher
+            update_ui()
+
+def handle_present_details():
+    destination = app_state.matched_destination
+    if not destination:
+        st.error("There is an error loading the destination. Please restart the app.")
+        st.stop()
+
+    st.title(f"Nice, you selected {destination.name}!")

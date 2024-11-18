@@ -33,14 +33,16 @@ def app():
     from lib.handlers import (
         handle_start, 
         handle_user_preferences, 
-        handle_matcher
+        handle_matcher,
+        handle_present_details
     )
 
     # Handler mapping
     stage_handlers = {
         Stage.START: handle_start,
         Stage.USER_PREFERENCES: handle_user_preferences,
-        Stage.MATCHER: handle_matcher
+        Stage.MATCHER: handle_matcher,
+        Stage.PRESENT_DETAILS: handle_present_details,
     }
 
     handler = stage_handlers.get(st.session_state.app_state.stage)
