@@ -14,3 +14,4 @@ class Destination(BaseModel):
     language: str
     trending: bool
     transportation: List[str]
+    image_url: str

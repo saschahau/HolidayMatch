@@ -36,28 +36,32 @@ class RecommendationEngine:
                                 "best_time_to_visit": {"type": "array", "description": "Best time to visit the destination", "items": {"type": "string", "description": "Month"}},
                                 "currency": {"type": "string", "description": "Currency used at the destination"},
                                 "language": {"type": "string", "description": "Language spoken at the destination"},
-                                "trending": {"type": "boolean", "description": "Whether the destination is trending or not"},
+                                "trending": {"type": "boolean", "description": "Whether the destination is trending or not for the travel date"},
                                 "transportation": {"type": "array", "description": "Transportation options to reach the destination", "items": {"type": "string", "description": "Transportation mode"}},
+                                "image_url": {"type": "string", "description": "Link to an image of the travel destination"},
                             },
-                            "required": ["name", "description", "climate", "activities", "budget", "travel_tips", "image", "best_time_to_visit", "currency", "language", "trending"]
+                            "required": ["name", "description", "climate", "activities", "budget", "travel_tips", "image", "best_time_to_visit", "currency", "language", "trending", "image_url"]
                         }
                     }
                 }
             }
         }
 
-    def generate_destination_recommendations(self, preferences, model = "gpt-4o"):
+    def generate_destination_recommendations(self, preferences, model = "gpt-4o", exclude_destinations = None):
         """ Get response from the AI model. """
-        prompt = f"Suggest 5 distinct travel destinations for the following user preferences: {preferences}. To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accomodation."
+        prompt = f"Suggest 5 distinct travel destinations for the following user preferences: {preferences}. To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accommodation. Budget is always per person."
+        if exclude_destinations is not None:
+            prompt += f"These destinations have already been presented but are no option for the user: {", ".join(exclude_destinations)}"
 
         response = openai.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
+                {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Include a link to a typical image of each destination sourced from Unsplash, Wikimedia Commons, GetYourGuide, or a reputable travel image source. The image needs to be in landscape format. Always return responses in JSON format."},
                 {"role": "user", "content": prompt},
             ],
             functions=[self.__function_definition],
             function_call = {"name": "get_travel_recommendations"}
+
         )
         output = response.choices[0].message.function_call.arguments
         json_result = json.loads(output)

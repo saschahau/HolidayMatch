@@ -43,8 +43,6 @@ class AppState:
         else:
             raise TypeError("Please provide a valid Stage object.")
 
-
-
     def get_is_anonymous(self):
         """ Check if the user is anonymous. """
         return self.__anonymous

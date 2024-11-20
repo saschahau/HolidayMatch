@@ -7,7 +7,7 @@ def app():
     """Main function for the Streamlit app."""
 
     # Set the page title and favicon
-    st.set_page_config(page_title="HolidayMatch", page_icon="🌍")
+    st.set_page_config(page_title="HolidayMatch", page_icon=":material/travel_explore:")
 
     # Instantiate the app state
     if "app_state" not in st.session_state:
