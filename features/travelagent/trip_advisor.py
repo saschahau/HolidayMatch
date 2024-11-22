@@ -5,7 +5,7 @@ class TripAdvisor:
         self.__api_key = api_key
         self.__base_url = "https://api.content.tripadvisor.com/api/v1"
 
-    async def location_search(self, search_query, category):
+    async def location_search_async(self, search_query, category):
         """
 
         :param search_query:
@@ -20,7 +20,7 @@ class TripAdvisor:
             response = httpx.get(url, headers=headers)
             return response.json()
 
-    async def location_photos(self, location_id: int):
+    async def location_photos_async(self, location_id: int):
         """
         The Location Photos request returns up to 5 high-quality photos for a specific location.
 

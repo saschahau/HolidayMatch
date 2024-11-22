@@ -15,7 +15,7 @@ import streamlit as st
 from features.matcher import Matcher
 from features.travelagent.models import Destination
 from lib.states import Stage
-from lib.utils import run_async_task, fetch_recommendations_with_images
+from lib.utils import run_async_task, fetch_recommendations_with_images_async
 
 # Get the app state from the session state
 if "app_state" not in st.session_state:
@@ -231,7 +231,7 @@ def handle_user_preferences():
                         destination_recommendations = travel_agent.get_travel_recommendations(st.session_state["answers"].items())
                         if destination_recommendations:
                             # Fetch images for the destinations asynchronously
-                            run_async_task(fetch_recommendations_with_images, travel_agent, destination_recommendations)
+                            run_async_task(fetch_recommendations_with_images_async, travel_agent, destination_recommendations)
 
                             # Create a new matcher
                             matcher = Matcher(destination_recommendations)

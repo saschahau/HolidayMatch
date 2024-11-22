@@ -12,12 +12,12 @@ def run_async_task(task, *args, **kwargs):
     """
     return asyncio.run(task(*args, **kwargs))
 
-async def fetch_recommendations_with_images(travel_agent, destination_recommendations):
+async def fetch_recommendations_with_images_async(travel_agent, destination_recommendations):
     """
     Fetch images for all destination recommendations asynchronously.
     """
     async def fetch_image(recommendation):
-        photos = await travel_agent.get_location_photo(recommendation.name)
+        photos = await travel_agent.get_location_photo_async(recommendation.name)
         if photos and "data" in photos and photos["data"]:
             first_photo = photos["data"][0]
             recommendation.image_url = first_photo["images"]["original"]["url"]

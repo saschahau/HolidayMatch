@@ -38,14 +38,14 @@ class Agent:
         recommendations = self.recommendation_engine.generate_destination_recommendations(preferences, exclude_destinations=exclude_destinations)
         return recommendations
 
-    async def get_location(self, search_query, category = "geos"):
-        return await self.trip_advisor.location_search(search_query, category)
+    async def get_location_async(self, search_query, category = "geos"):
+        return await self.trip_advisor.location_search_async(search_query, category)
 
-    async def get_location_photo(self, location_name):
-        location = await self.get_location(location_name)
+    async def get_location_photo_async(self, location_name):
+        location = await self.get_location_async(location_name)
         if "data" in location and location["data"]:
             location_id = location["data"][0]["location_id"]
-            photos = await self.trip_advisor.location_photos(location_id)
+            photos = await self.trip_advisor.location_photos_async(location_id)
             return photos
         else:
             print("Location not found")
