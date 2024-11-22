@@ -1,5 +1,4 @@
-from features.travelagent.destination import Destination
-
+from features.travelagent.models import Destination
 
 class Matcher:
     def __init__(self, recommendations):

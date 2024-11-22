@@ -20,14 +20,21 @@ def app():
             if "chatbot_api_key" not in st.session_state:                
                 st.write("Please provide your OpenAI API key")
                 openai_api_key = st.text_input("OpenAI API key", key="chatbot_api_key", type="password")
-
             openai_api_key = st.session_state.chatbot_api_key
             if not openai_api_key:
                 st.info("Please add your OpenAI API key to continue.")
                 st.stop()
         else:
             openai_api_key = st.secrets["openai_key"]
-        st.session_state.travel_agent_instance = Agent(openai_api_key)
+        if "tripadvisor_api_key" not in st.secrets:
+            st.error("Please provide your TripAdvisor API key")
+            st.stop()
+
+        # Create a travel agent instance
+        st.session_state.travel_agent_instance = Agent(
+            openai_key=openai_api_key,
+            tripadvisor_key=st.secrets["tripadvisor_api_key"]
+        )
     
     # Import the handlers after the app state and travel agent are instantiated
     from lib.handlers import (
@@ -46,7 +53,8 @@ def app():
     }
 
     handler = stage_handlers.get(st.session_state.app_state.stage)
-    if handler:     
+    if handler:
+        # Process the according UI handler
         handler()
             
 if __name__ == '__main__':

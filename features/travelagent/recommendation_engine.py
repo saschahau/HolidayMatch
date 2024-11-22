@@ -1,11 +1,11 @@
 import json
+import os
 import openai
 from datetime import datetime
 from pydantic import TypeAdapter
 from typing import List
 
-from features.travelagent.destination import Destination
-
+from features.travelagent.models import Destination
 
 class RecommendationEngine:
     """Recoomendation Engine class to interact with the OpenAI API."""
@@ -53,19 +53,32 @@ class RecommendationEngine:
         if exclude_destinations is not None:
             prompt += f"These destinations have already been presented but are no option for the user: {", ".join(exclude_destinations)}"
 
-        response = openai.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Include a link to a typical image of each destination sourced from Unsplash, Wikimedia Commons, GetYourGuide, or a reputable travel image source. The image needs to be in landscape format. Always return responses in JSON format."},
-                {"role": "user", "content": prompt},
-            ],
-            functions=[self.__function_definition],
-            function_call = {"name": "get_travel_recommendations"}
+        DEV_MODE = True
 
-        )
-        output = response.choices[0].message.function_call.arguments
-        json_result = json.loads(output)
+        if DEV_MODE:
+            data_folder = "data"
+            file_path = os.path.join(data_folder, f"suggestions.json")
+
+            # Save the json_result into the suggestions.json file
+            with open(file_path, 'r') as json_file:
+                json_result = json.load(json_file)
+
+        else:
+            response = openai.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Include a link to a typical image of each destination sourced from Unsplash, Wikimedia Commons, GetYourGuide, or a reputable travel image source. The image needs to be in landscape format. Always return responses in JSON format."},
+                    {"role": "user", "content": prompt},
+                ],
+                functions=[self.__function_definition],
+                function_call = {"name": "get_travel_recommendations"}
+
+            )
+            output = response.choices[0].message.function_call.arguments
+            json_result = json.loads(output)
+
         recommendations = TypeAdapter(List[Destination]).validate_python(json_result["destinations"])
+
         content = {
             'timestamp': datetime.now(),
             'preferences': preferences,
