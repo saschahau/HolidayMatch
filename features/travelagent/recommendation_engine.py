@@ -58,7 +58,6 @@ class RecommendationEngine:
             prompt += f"These destinations have already been presented but are no option for the user: {", ".join(exclude_destinations)}"
 
         DEV_MODE = False
-
         if DEV_MODE:
             data_folder = "data"
             file_path = os.path.join(data_folder, f"suggestions.json")
@@ -66,7 +65,6 @@ class RecommendationEngine:
             # Save the json_result into the suggestions.json file
             with open(file_path, 'r') as json_file:
                 json_result = json.load(json_file)
-
         else:
             response = openai.chat.completions.create(
                 model=model,
