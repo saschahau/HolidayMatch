@@ -1,64 +1,68 @@
-import json
-import openai
 from datetime import datetime
 
+from features.travelagent.flight_provider import FlightProvider
+from features.travelagent.recommendation_engine import RecommendationEngine
+from features.travelagent.trip_advisor import TripAdvisor
+
 class Agent:
-    """"""
-    def __init__(self, api_key: str):
-        openai.api_key = api_key
-        # Define a list to store the responses
-        self.response_history = list()
-        # Define the tokens used by the AI model to control the costs
-        self.__tokes_used = dict()
-        # Define the function signature to get structured suggestions from the AI model
-        self.__function_definition = {
-            "name": "get_travel_recommendations",
-            "description": "Returns a structured list of travel destination suggestions.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "destinations": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "name": {"type": "string", "description": "Name of the travel destination"},
-                                "description": {"type": "string", "description": "Brief description of the destination"},
-                                "climate": {"type": "string", "description": "Climate type during travel date (e.g., Warm, Cold, Mild)"},
-                                "activities": {"type": "array", "items": {"type": "string", "description": "Activity to do at the destination and which it is famous for"}},
-                                "budget": {"type": "string", "description": "Budget level (Low, Medium, High)"},
-                                "travel_tips": {"type": "string", "description": "Travel tips for the destination"},
-                                "best_time_to_visit": {"type": "array", "description": "Best time to visit the destination", "items": {"type": "string", "description": "Month"}},
-                                "currency": {"type": "string", "description": "Currency used at the destination"},
-                                "language": {"type": "string", "description": "Language spoken at the destination"},
-                                "trending": {"type": "boolean", "description": "Whether the destination is trending or not"},
-                                "transportation": {"type": "array", "description": "Transportation options to reach the destination", "items": {"type": "string", "description": "Transportation mode"}},
-                            },
-                            "required": ["name", "description", "climate", "activities", "budget", "travel_tips", "image", "best_time_to_visit", "currency", "language", "trending"]
-                        }
-                    }
-                }
-            }
-        }
+    """
+    Agent class
+    A class to represent a travel agent.
+    """
+    def __init__(self, openai_key: str, tripadvisor_key: str):
+        """
+        Initializes the Travel Agent instance.
 
-    def get_travel_suggestions(self, message):
-        """ Get response from the AI model. """
-        completion = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
-                {"role": "user", "content": f"Suggest 5 distinct travel destinations for the following user preferences: {message}. To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accomodation."},
-            ],
-            functions=[self.__function_definition],
-            function_call = {"name": "get_travel_recommendations"}
-        )
-        output = completion.choices[0].message.function_call.arguments
-        result = json.loads(output)
-        content = {
-            'timestamp': datetime.now(),
-            'question': message,
-            'response': result
-        }
-        self.response_history.append(content)
+        Args:
+            openai_key (str): The API key for accessing the recommendation engine (OpenAI API).
+            tripadvisor_key (str): The API key for accessing TripAdvisor (TripAdvisor API).
+        """
+        self.recommendation_engine = RecommendationEngine(openai_key)
+        #self.flight_provider = FlightProvider()
+        self.trip_advisor = TripAdvisor(tripadvisor_key)
 
-        return content.get('response')
+    def get_travel_recommendations(self, preferences, user_information, exclude_destinations = None):
+        """
+        Generates travel recommendations based on user preferences.
+
+        Args:
+            preferences (dict): A dictionary of user preferences for the travel destination.
+                Example keys might include "climate", "budget", "activities", etc.
+            user_information (UserInformation): An object that holds the user information.
+            exclude_destinations (list, optional): A list of destinations to exclude from the recommendations.
+                Defaults to None.
+
+        Returns:
+            list[Destination]: A list of recommended travel destinations.
+        """
+        return self.recommendation_engine.generate_destination_recommendations(preferences, user_information, exclude_destinations=exclude_destinations)
+
+    def get_location_overview(self, location_name, preferences, user_information):
+        """"""
+        return self.recommendation_engine.generate_destination_overview(location_name, preferences, user_information)
+
+    async def get_location_async(self, search_query, category = "geos"):
+        return await self.trip_advisor.location_search_async(search_query, category)
+
+    async def get_location_photo_async(self, location_name):
+        location = await self.get_location_async(location_name)
+        if "data" in location and location["data"]:
+            location_id = location["data"][0]["location_id"]
+            photos = await self.trip_advisor.location_photos_async(location_id)
+            return photos
+        else:
+            print("Location not found")
+            return None
+
+    async def get_location_details_async(self, location_name):
+        location = await self.get_location_async(location_name)
+        if "data" in location and location["data"]:
+            location_id = location["data"][0]["location_id"]
+            details = await self.trip_advisor.location_details_async(location_id)
+            return details
+        else:
+            print("Location not found")
+            return None
+
+    async def get_flights_to_destination(self):
+        pass

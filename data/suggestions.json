@@ -1,0 +1,129 @@
+{
+    "destinations": [
+        {
+            "name": "Ibiza, Spain",
+            "description": "A vibrant island known for its stunning beaches and legendary parties.",
+            "climate": "Warm",
+            "activities": [
+                "Beach/Relaxation",
+                "Party",
+                "Adventure"
+            ],
+            "budget": "Medium",
+            "travel_tips": "Book accommodation close to the main beaches for ease of access.",
+            "best_time_to_visit": [
+                "May",
+                "June",
+                "July"
+            ],
+            "currency": "EUR",
+            "language": "Spanish",
+            "trending": true,
+            "transportation": [
+                "Flight",
+                "Ferry"
+            ],
+            "image_url": "https://source.unsplash.com/D8WrdJCErXQ"
+        },
+        {
+            "name": "Mykonos, Greece",
+            "description": "A picturesque island offering beautiful beaches and lively nightlife.",
+            "climate": "Warm",
+            "activities": [
+                "Beach/Relaxation",
+                "Party",
+                "Adventure"
+            ],
+            "budget": "Medium",
+            "travel_tips": "Rent a scooter to explore the island's hidden spots.",
+            "best_time_to_visit": [
+                "May",
+                "June",
+                "July"
+            ],
+            "currency": "EUR",
+            "language": "Greek",
+            "trending": true,
+            "transportation": [
+                "Flight",
+                "Ferry"
+            ],
+            "image_url": "https://source.unsplash.com/O7QQ119hZi8"
+        },
+        {
+            "name": "Nice, France",
+            "description": "A charming city with pebbly beaches and a vibrant cultural scene.",
+            "climate": "Warm",
+            "activities": [
+                "Beach/Relaxation",
+                "Party",
+                "Adventure"
+            ],
+            "budget": "Medium",
+            "travel_tips": "Try the local cuisine in the Old Town.",
+            "best_time_to_visit": [
+                "May",
+                "June",
+                "July"
+            ],
+            "currency": "EUR",
+            "language": "French",
+            "trending": false,
+            "transportation": [
+                "Flight",
+                "Train"
+            ],
+            "image_url": "https://source.unsplash.com/WLxQvbMyfas"
+        },
+        {
+            "name": "Algarve, Portugal",
+            "description": "Known for its stunning coastline and vibrant beach culture.",
+            "climate": "Warm",
+            "activities": [
+                "Beach/Relaxation",
+                "Party",
+                "Adventure"
+            ],
+            "budget": "Medium",
+            "travel_tips": "Visit the Benagil Caves for a unique beach experience.",
+            "best_time_to_visit": [
+                "May",
+                "June",
+                "July"
+            ],
+            "currency": "EUR",
+            "language": "Portuguese",
+            "trending": true,
+            "transportation": [
+                "Flight",
+                "Bus"
+            ],
+            "image_url": "https://source.unsplash.com/ncRWQ6OqwM0"
+        },
+        {
+            "name": "Hvar, Croatia",
+            "description": "A sun-drenched island famous for its beach parties and historic charm.",
+            "climate": "Warm",
+            "activities": [
+                "Beach/Relaxation",
+                "Party",
+                "Adventure"
+            ],
+            "budget": "Low",
+            "travel_tips": "Explore the nearby Pakleni Islands for a quieter beach day.",
+            "best_time_to_visit": [
+                "May",
+                "June",
+                "July"
+            ],
+            "currency": "HRK",
+            "language": "Croatian",
+            "trending": true,
+            "transportation": [
+                "Flight",
+                "Ferry"
+            ],
+            "image_url": "https://source.unsplash.com/JmuyB_LibRo"
+        }
+    ]
+}
