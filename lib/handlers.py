@@ -357,7 +357,6 @@ def handle_present_details():
 
     # Make use of the helper function 'run_async_task' to retrieve the location details.
     location_details = run_async_task(travel_agent.get_location_details_async, destination.name)
-    print(location_details)
 
     st.title(f"Nice, it's a match: {destination.name}!")
     st.write(location_details["latitude"], location_details["longitude"])

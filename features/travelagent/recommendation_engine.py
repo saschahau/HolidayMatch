@@ -108,5 +108,4 @@ class RecommendationEngine:
             ]
         )
         content = response.choices[0].message.content
-        print(content)
         return content
