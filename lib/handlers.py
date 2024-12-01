@@ -13,9 +13,9 @@ import pandas as pd
 import streamlit as st
 
 from features.matcher import Matcher
-from features.travelagent.models import Destination
+from features.travelagent.models import Destination, UserInfo
 from lib.states import Stage
-from lib.utils import run_async_task, fetch_recommendations_with_images_async
+from lib.utils import get_current_plus_two_years, run_async_task, fetch_recommendations_with_images_async
 
 # Get the app state from the session state
 if "app_state" not in st.session_state:
@@ -43,7 +43,7 @@ def previous_step():
     update_ui()
 
 # Function to reset the app
-def reset_app():
+def reset_preferences():
     st.session_state["step"] = 1
     st.session_state["answers"] = {}
 
@@ -59,17 +59,21 @@ def handle_start():
 
     # User Info Input
     with st.container(border=True):
-        st.subheader("Before we start, what's your name?")
+        st.subheader("Before we start, we'd like to know you better!")
         name = st.text_input("Please enter your name")
-        # Intro Message After Name Input
-        if name != "":
+        age = st.slider("Please enter your age", 0, 120, 20)
+        gender = st.pills("Gender", ["Female", "Male", "Other", "I'd rather not to say"], selection_mode='single')
+
+        # Intro Message after user information input
+        if name != "" and gender is not None:
             st.subheader(f"Nice to meet you, {name}!")
             st.write("We'll ask you a few questions to find your ideal holiday destination. Ready? ")
-
+            # Store the user information into the app state
+            app_state.user_info = UserInfo(name=name, age=age, gender=gender)        
 
         # Add a "Next" button if you want to proceed to the next step
-        # Disable the button as long as no name is provided
-        button_disabled = True if not name else False
+        # Disable the button as long as no user information is provided
+        button_disabled = True if (not name or gender is None) else False
         if st.button("Let's go!", icon=":material/start:", disabled=button_disabled):
             app_state.stage = Stage.USER_PREFERENCES
             st.session_state.app_state = app_state
@@ -100,9 +104,15 @@ def handle_user_preferences():
                     "options": ["1-3 days", "4-7 days", "Longer than 1 week", "Other"]
                 },
                 {
+                    "title": "Year",
+                    "question": "Which year would you like to travel?",
+                    "type": "pills::single",
+                    "options": get_current_plus_two_years()
+                },
+                {
                     "title": "Month",
                     "question": "Which month would you like to travel?",
-                    "type": "pills",
+                    "type": "pills::multi",
                     "options": ["January", "February", "March", "April", "May", "June",
                                 "July", "August", "September", "October", "November", "December"]
                 },
@@ -191,8 +201,9 @@ def handle_user_preferences():
                     answer = st.radio("Choose an option:", question["options"], index=0, key=f"{question['title']}_{current_step}")
                 elif question["type"] == "multiselect":
                     answer = st.multiselect("Choose one or more options:", question["options"], key=f"{question['title']}_{current_step}")
-                elif question["type"] == "pills":
-                    answer = st.pills("Choose one or more options:", question["options"], selection_mode="multi")
+                elif question["type"].startswith("pills"):
+                    selection_mode = question["type"].split("::")[1]
+                    answer = st.pills("Choose one or more options:", question["options"], selection_mode=selection_mode, key=f"{question['title']}_{current_step}")
 
                 # Store the answer into the session state
                 st.session_state["answers"][question["title"]] = answer
@@ -206,29 +217,54 @@ def handle_user_preferences():
         # Summary or completion
         elif current_step == len(question_groups) + 1:
             st.header("Summary")
+            st.write("Please review your answers before proceeding.")
+
+            # Display user information
+            st.subheader("User Information")
+            st.write(f"**Name**: {app_state.user_info.name}")
+            st.write(f"**Age**: {app_state.user_info.age}")
+            st.write(f"**Gender**: {app_state.user_info.gender}")
+
+            # Display the answers
+            st.subheader("Preferences")
             st.write("Here are your answers:")
             for key, value in st.session_state["answers"].items():
+                # Show in a 2-column layout
                 col_1, col_2 = st.columns([0.3, 0.7])
                 with col_1:
                     st.write(f"**{key}**")
                 with col_2:
                     if isinstance(value, list):
                         st.write(", ".join(value))
+                    elif isinstance(value, int):
+                        st.write(str(value))
                     else:
                         st.write(value)
 
+            # Show the buttons in a 2-column layout
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Restart", use_container_width=True):
-                    reset_app()
+                    # Reset the user preferences and start over
+                    reset_preferences()
 
             with col2:
-                # This is only a temporary solution until the preference builder is implemented
-                # user_input = st.text_area("Enter your message", "")
                 if st.button('Get suggestions', type="primary", icon=":material/model_training:", use_container_width=True):
+                    # Store the user preferences in the app state
                     app_state.user_preferences = st.session_state["answers"].items()
-                    with st.spinner("Finding travel recommendations for you..."):
-                        destination_recommendations = travel_agent.get_travel_recommendations(st.session_state["answers"].items())
+
+                    # Update the application state stage
+                    app_state.stage = Stage.RETRIEVE_SUGGESTIONS
+
+                    # Show a spinner while fetching the suggestions
+                    with st.spinner("Finding travel recommendations for you..."):                        
+                        # Get travel recommendations based on the user preferences
+                        destination_recommendations = travel_agent.get_travel_recommendations(
+                            preferences=st.session_state["answers"].items(),
+                            user_information=app_state.user_info
+                        )
+
+                        # Ensure that results exist
                         if destination_recommendations:
                             # Fetch images for the destinations asynchronously
                             run_async_task(fetch_recommendations_with_images_async, travel_agent, destination_recommendations)
@@ -239,7 +275,7 @@ def handle_user_preferences():
 
                             # Update the application state stage
                             app_state.stage = Stage.MATCHER
-                            st.session_state.app_state = app_state
+                            st.session_state.app_state = app_state                            
                     update_ui()
 
 @st.fragment
@@ -262,6 +298,7 @@ def handle_matcher():
             if suggestion.image_url:
                 st.image(suggestion.image_url)
 
+            # Show destination information retrieved from the recommendation engine
             st.subheader(suggestion.name)
             st.write(suggestion.description)
             st.markdown("##### What you'd like to know:")
@@ -271,25 +308,39 @@ def handle_matcher():
             st.markdown(f"**Best time to visit**: {", ".join(suggestion.best_time_to_visit)}")
             st.markdown(f"**Transportation**: {", ".join(suggestion.transportation)}")
 
+            # Show the buttons in a 2-column layout
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Dislike", icon=":material/swipe_left:" , use_container_width=True):
+                    # Call the dislike method of the matcher, which will add the current location to the disliked ones.
+                    # With the disliked options it is ensured, that the recommendation engine will not present them
+                    # again if the user did not like any of the options and retrieves a new list of options.
                     matcher.dislike()
+
+                    # Update the UI to show the next suggestion.
                     update_ui()
             with col2:
                 if st.button("Like", type="primary", icon=":material/swipe_right:",  use_container_width=True):
+                    # Set the destination in the app state and update the stage
                     app_state.matched_destination = suggestion
                     app_state.stage = Stage.PRESENT_DETAILS
-                    st.session_state.app_state = app_state
-                    update_ui()
 
+                    # Store the updated app state into the session.
+                    st.session_state.app_state = app_state
+
+                    # Update the UI to show the details about the location.
+                    update_ui()
     else:
+        # The user did not like any of the suggestions that have been presented to him.
         st.write("No more suggestions. Would you like to try again?")
+
+        # Provide the option to retrieve new suggestions.
         if st.button("Get new suggestions"):
             with st.spinner("Retrieving new suggestions..."):
                 # Generate a new set of recommendations but exclude the ones that the user did not like
                 destination_recommendations = travel_agent.get_travel_recommendations(
-                    app_state.user_preferences,
+                    preferences = app_state.user_preferences,
+                    user_information=app_state.user_info,
                     exclude_destinations = matcher.disliked_destinations)
                 if destination_recommendations:
                     matcher.replace_suggestions(destination_recommendations)
@@ -298,111 +349,56 @@ def handle_matcher():
 
 @st.fragment
 def handle_present_details():
+    # Load the matched destination
     destination = app_state.matched_destination
     if not destination:
         st.error("There is an error loading the destination. Please restart the app.")
         st.stop()
 
+    # Make use of the helper function 'run_async_task' to retrieve the location details.
+    location_details = run_async_task(travel_agent.get_location_details_async, destination.name)
+    print(location_details)
+
     st.title(f"Nice, it's a match: {destination.name}!")
+    st.write(location_details["latitude"], location_details["longitude"])
 
     # Display the image for the location
     st.image(destination.image_url)
 
-    # Mock temperature data for Ibiza for the months of June, July, and August
-    temperature_data = {
-        "Day": list(range(1, 32)),  # Assuming 31 days for each month
-        "July": [28 + (i % 2) for i in range(31)],  # Example data for July
-    }
-
-    # Convert the data into a DataFrame
-    df = pd.DataFrame(temperature_data)
-
-    # Streamlit Line Chart
-    st.write("**Temperature Data prediction for Ibiza (July)**")
-    st.line_chart(df.set_index("Day"))
-
-    tabs = ["Overview", "Hotels", "Flights"]
-    tab1, tab2, tab3 = st.tabs(tabs)
+    # Use tabs to improve the organization of the content
+    tabs = ["Overview", "Your Trip"]
+    tab1, tab2 = st.tabs(tabs)
 
     with tab1:
-        st.header("Overview")
-        overview_text = """
-        **Ibiza**, one of Spain's Balearic Islands in the Mediterranean Sea, is renowned for its vibrant nightlife, pristine beaches, and charming villages. Known as the "White Isle," Ibiza offers a perfect blend of relaxation, adventure, and culture, making it a top destination for travelers worldwide.
-
-- **Location**: Balearic Islands, Spain
-- **Climate**: Mediterranean (Warm summers, mild winters)
-- **Best Time to Visit**: May to October
-- **Currency**: Euro (€)
-- **Language**: Spanish (Catalan is also widely spoken)
-
----
-
-## 🌅 **Why Visit Ibiza?**
-1. **Stunning Beaches**:
-   - Ibiza is home to over 80 picturesque beaches, ranging from secluded coves to lively beach clubs.
-   - Popular spots include **Cala Comte**, **Cala Bassa**, and **Playa d’en Bossa**.
-
-2. **World-Class Nightlife**:
-   - Ibiza is synonymous with its legendary nightlife, featuring world-renowned DJs and clubs like **Pacha**, **Amnesia**, and **Ushuaïa**.
-   - Nightlife runs from late spring to early autumn, making it a hotspot for party enthusiasts.
-
-3. **Rich Culture and History**:
-   - The fortified old town of **Dalt Vila** (a UNESCO World Heritage Site) offers a glimpse into Ibiza’s ancient history, with cobblestone streets and breathtaking views.
-   - Explore the **Ibiza Cathedral** and **Necropolis of Puig des Molins** for a cultural dive.
-
-4. **Charming Villages**:
-   - Beyond the glitz and glamour, Ibiza boasts quaint villages like **Santa Gertrudis** and **Sant Josep**, where you can enjoy authentic Balearic cuisine and local art.
-
-5. **Wellness and Nature**:
-   - Ibiza is a hub for wellness retreats, offering yoga classes, meditation, and holistic therapies.
-   - Natural wonders include the mystical **Es Vedrà rock** and lush pine forests perfect for hiking.
-
----
-
-## 🏖️ **Top Attractions**
-1. **Dalt Vila**: Wander through this historic old town, filled with ancient walls, boutique shops, and panoramic vistas.
-2. **Es Vedrà**: A dramatic limestone rock rising from the sea, shrouded in myths and legends.
-3. **Formentera**: Take a short ferry ride to Ibiza’s sister island for crystal-clear waters and unspoiled beaches.
-4. **Hippy Markets**: Shop for unique souvenirs and handmade crafts at markets like **Las Dalias** and **Punta Arabí**.
-
----
-
-## 🍽️ **Food and Drink**
-- **Local Delicacies**:
-  - **Bullit de Peix**: A traditional fish stew.
-  - **Flaó**: A delicious cheesecake flavored with mint.
-  - **Sobrasada**: A cured sausage unique to the Balearic Islands.
-
-- **Cocktail Culture**:
-  - Sip on refreshing **Hierbas Ibicencas**, a local herbal liqueur, while enjoying sunset views.
-
----
-
-## 🚤 **Transportation**
-- **Getting There**:
-  - Fly into **Ibiza Airport (IBZ)**, which connects the island to major European cities.
-  - Ferries are available from Barcelona, Valencia, and Mallorca.
-
-- **Getting Around**:
-  - Rent a car or scooter to explore the island at your own pace.
-  - Taxis and public buses are available but may be limited in remote areas.
-
----
-
-## ✨ **Travel Tips**
-- Book accommodations early during peak season (June to September).
-- Visit beach clubs early in the day to secure a spot.
-- Respect local rules regarding noise and environmental preservation.
-
----
-
-Ibiza is more than just a party destination; it’s a haven of beauty, culture, and adventure. Whether you’re looking to dance the night away, relax by turquoise waters, or explore centuries-old heritage, Ibiza has something for everyone."""
-        st.write(overview_text)
+        with st.spinner("Generating destination overview..."):
+            # Retrieve a destination summary from the recommendation engine.
+            destination_overview = travel_agent.get_location_overview(destination.name,
+                                                                      preferences=app_state.user_preferences,
+                                                                      user_information=app_state.user_info
+                                                                      )
+            destination_overview = destination_overview.strip()
+        st.markdown(destination_overview, unsafe_allow_html=True)
 
     with tab2:
-        st.header("Hotels")
-        st.markdown("Some text...")
+        st.header("Your trip")
+        st.write("All information relevant to your trip.")
 
-    with tab3:
-        st.header("Flights")
-        st.markdown("Some text...")
+        st.subheader("Weather")
+        # Mock temperature data for Ibiza for the months of June, July, and August
+        temperature_data = {
+            "Day": list(range(1, 32)),  # Assuming 31 days for each month
+            "July": [28 + (i % 2) for i in range(31)],  # Example data for July
+        }
+
+        # Convert the data into a DataFrame
+        df = pd.DataFrame(temperature_data)
+
+        # Streamlit Line Chart
+        st.write(f"**Temperature Data prediction for {destination.name}**")
+        st.line_chart(df.set_index("Day"))
+
+        st.subheader("Transportation")
+        st.write("tbd...")
+
+        st.subheader("Accommodation")
+        st.write("tbd...")

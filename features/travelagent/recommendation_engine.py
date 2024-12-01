@@ -47,13 +47,17 @@ class RecommendationEngine:
             }
         }
 
-    def generate_destination_recommendations(self, preferences, model = "gpt-4o", exclude_destinations = None):
+    def generate_destination_recommendations(self, preferences, user_information, model = "gpt-4o", exclude_destinations = None):
         """ Get response from the AI model. """
-        prompt = f"Suggest 5 distinct travel destinations for the following user preferences: {preferences}. To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accommodation. Budget is always per person."
+        prompt = f"""Suggest 5 distinct travel destinations for the following user preferences: {preferences}. 
+        User information: Age: {user_information.age}. Gender: {user_information.gender}.
+        To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. If you have other transportation options than a plane, always specify how to get there exactly.
+        Only suggest locations where it can reasonably be assumed that the budget is sufficient for transport and accommodation.
+        Budget is always per person."""
         if exclude_destinations is not None:
             prompt += f"These destinations have already been presented but are no option for the user: {", ".join(exclude_destinations)}"
 
-        DEV_MODE = True
+        DEV_MODE = False
 
         if DEV_MODE:
             data_folder = "data"
@@ -67,7 +71,7 @@ class RecommendationEngine:
             response = openai.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Include a link to a typical image of each destination sourced from Unsplash, Wikimedia Commons, GetYourGuide, or a reputable travel image source. The image needs to be in landscape format. Always return responses in JSON format."},
+                    {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
                     {"role": "user", "content": prompt},
                 ],
                 functions=[self.__function_definition],
@@ -87,3 +91,24 @@ class RecommendationEngine:
         self.response_history.append(content)
 
         return recommendations
+
+    def generate_destination_overview(self, destination, preferences, user_information, model = "gpt-4o"):
+        system_instructions = f"""Act as experienced travel agent and provide a short and concise overview about the travel destination, the user asks for."""
+        prompt = f"""
+            Destination: {destination}.
+            Here are some background information about the traveller: 
+                User Information: Age: {user_information.age}. Gender: {user_information.gender}.
+                Preferences: {preferences}
+            Give your response as markdown-text, so that it can be used in Streamlit using st.markdown(). Don't use '```markdown' at the beginning, as it will not be rendered properly!
+        """
+        # Get the response from OpenAI
+        response = openai.chat.completions.create(
+            model=model,
+            messages=[
+                { "role": "system","content": system_instructions },
+                { "role": "user", "content": prompt },
+            ]
+        )
+        content = response.choices[0].message.content
+        print(content)
+        return content

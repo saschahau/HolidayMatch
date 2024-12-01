@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 def run_async_task(task, *args, **kwargs):
     """
@@ -26,3 +27,16 @@ async def fetch_recommendations_with_images_async(travel_agent, destination_reco
 
     # Run the image fetch tasks concurrently
     await asyncio.gather(*(fetch_image(recommendation) for recommendation in destination_recommendations))
+
+def get_current_plus_two_years():
+    """
+    Get the current year and the next two years.
+    Returns:
+        A list of the current year and the next two years.
+    """
+    # Get current year
+    current_year = datetime.now().year
+
+    # Generate list of years from current year to current year + 2
+    # e.g. [2024, 2025, 2026]
+    return [int(year) for year in range(current_year, current_year + 3)]

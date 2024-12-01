@@ -1,14 +1,6 @@
-import enum
-from enum import Enum
-
-class Stage(Enum):
-    """"""
-    START = "start"
-    USER_PREFERENCES = "user_preferences"
-    RETRIEVE_SUGGESTIONS = "retrieve_suggestions"
-    MATCHER = "matcher"
-    PRESENT_DETAILS = "present_details"
-    RETRIEVE_NEW_SUGGESTIONS = "retrieve_new_suggestions"
+""" This module contains the AppState class. """
+from lib.enums import Stage
+from features.travelagent.models import UserInfo
 
 class AppState:
     """
@@ -21,6 +13,7 @@ class AppState:
         self.user_preferences = None
         self.matched_destination = None
         self.itinerary = None # Will be implemented if time allows.
+        self.user_info = None
 
     def reset(self):
         """ Reset the state. """
@@ -29,6 +22,7 @@ class AppState:
         self.user_preferences = None
         self.matched_destination = None
         self.itinerary = None
+        self.user_info = None
 
     @property
     def stage(self):
@@ -42,6 +36,22 @@ class AppState:
             self._stage = stage
         else:
             raise TypeError("Please provide a valid Stage object.")
+
+    @property
+    def user_info(self):
+        """Return the user information."""
+        return self._user_info
+
+    @user_info.setter
+    def user_info(self, user_info: UserInfo):
+        """ Set the user information. """
+        # Check if the user information is valid.
+        # If not, raise an error.
+        if user_info is not None and not isinstance(user_info, UserInfo):
+            raise TypeError("Please provide valid user information.")
+        
+        # If the user information is valid, set it.        
+        self._user_info = user_info
 
     def get_is_anonymous(self):
         """ Check if the user is anonymous. """

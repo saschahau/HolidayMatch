@@ -42,3 +42,11 @@ class TripAdvisor:
             response = httpx.get(url, headers=headers)
             return response.json()
 
+    async def location_details_async(self, location_id: int):
+        url = f"{self.__base_url}/location/{location_id}/details?language=en&currency=CHF&key={self.__api_key}"
+        headers = {
+            "accept": "application/json"
+        }
+        async with httpx.AsyncClient() as client:
+            response = httpx.get(url, headers=headers)
+            return response.json()

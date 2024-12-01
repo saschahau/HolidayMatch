@@ -15,3 +15,8 @@ class Destination(BaseModel):
     trending: bool
     transportation: List[str]
     image_url: str
+
+class UserInfo(BaseModel):
+    name: str
+    age: int
+    gender: str
