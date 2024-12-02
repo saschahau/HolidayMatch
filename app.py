@@ -6,8 +6,7 @@ from features.travelagent import Agent
 from lib.states import AppState, Stage
 
 def app():
-    """Main function for the Streamlit app."""
-
+    """ Main Streamlit app function. """
     # Set the page title and favicon
     st.set_page_config(page_title="HolidayMatch", page_icon=":material/travel_explore:")
 

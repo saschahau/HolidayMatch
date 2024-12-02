@@ -1,7 +1,8 @@
+""" This file contains the enums used in the application. """
 from enum import Enum
 
 class Stage(Enum):
-    """"""
+    """ Stages of the application """
     START = "start"
     USER_PREFERENCES = "user_preferences"
     RETRIEVE_SUGGESTIONS = "retrieve_suggestions"

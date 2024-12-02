@@ -8,7 +8,7 @@ from typing import List
 from features.travelagent.models import Destination
 
 class RecommendationEngine:
-    """Recoomendation Engine class to interact with the OpenAI API."""
+    """ Recommendation Engine class to interact with the OpenAI API."""
     def __init__(self, api_key: str):
         openai.api_key = api_key
         # Define a list to store the responses
@@ -48,7 +48,16 @@ class RecommendationEngine:
         }
 
     def generate_destination_recommendations(self, preferences, user_information, model = "gpt-4o", exclude_destinations = None):
-        """ Get response from the AI model. """
+        """ 
+        Generate travel destination recommendations based on user preferences and information.
+        
+        :param preferences: The user preferences for the travel destination.
+        :param user_information: The user information
+        :param model: The AI model to use for generating recommendations (default is set to 'gpt-4o').
+        :param exclude_destinations: The destinations to exclude from the recommendations.
+        """
+
+        # Prepare the prompt for the AI model
         prompt = f"""Suggest 5 distinct travel destinations for the following user preferences: {preferences}. 
         User information: Age: {user_information.age}. Gender: {user_information.gender}.
         To consider transportation options and travel time to destination, assume the user starts his trip in Switzerland. If you have other transportation options than a plane, always specify how to get there exactly.
