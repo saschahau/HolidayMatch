@@ -14,6 +14,7 @@ class TripAdvisor:
         """
         url = f"{self.__base_url}/location/search?searchQuery={search_query}&category={category}&language=en&key={self.__api_key}"
         headers = {
+            "Referer": "holidaymatch.streamlit.app",
             "accept": "application/json"
         }
         async with httpx.AsyncClient() as client:
@@ -36,6 +37,7 @@ class TripAdvisor:
         """
         url = f"{self.__base_url}/location/{location_id}/photos?language=en&key={self.__api_key}"
         headers = {
+            "Referer": "holidaymatch.streamlit.app",
             "accept": "application/json"
         }
         async with httpx.AsyncClient() as client:
@@ -45,6 +47,7 @@ class TripAdvisor:
     async def location_details_async(self, location_id: int):
         url = f"{self.__base_url}/location/{location_id}/details?language=en&currency=CHF&key={self.__api_key}"
         headers = {
+            "Referer": "holidaymatch.streamlit.app",
             "accept": "application/json"
         }
         async with httpx.AsyncClient() as client:
