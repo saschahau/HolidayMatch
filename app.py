@@ -38,7 +38,6 @@ def app():
             load_dotenv()
             OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
             TRIPADVISOR_API_KEY = os.getenv("TRIPADVISOR_API_KEY")
-            st.warning(f"Secrets file not found! Loading API keys from environment variables.")
         except Exception:
             st.error(f"An error occurred while loading the API keys!")
             st.stop()
