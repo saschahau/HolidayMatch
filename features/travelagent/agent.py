@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from features.travelagent.flight_provider import FlightProvider
 from features.travelagent.recommendation_engine import RecommendationEngine
 from features.travelagent.trip_advisor import TripAdvisor
 
