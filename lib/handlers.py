@@ -29,27 +29,37 @@ if "travel_agent_instance" not in st.session_state:
 travel_agent = st.session_state.travel_agent_instance
 
 def update_ui():
-    """Render the UI for the current stage."""
+    """ 
+    A helper function to update the UI based on the current stage.
+
+    This function is used to update the UI after the user interacts with the app and
+    uses Streamlits rerun functionality. Despite the caveats and the side effects coming with st.rerun(), 
+    due to the size of the app and the limited scope, we use it here.
+
+    Better approaches might be:
+    - Using callbacks
+    - Using a streamlit containter
+    """
     st.rerun() # Rerun the app to render the next stage. This is necessary to update the UI because of Streamlits rerun behavior when interacting with input widgets.
 
-# Function to move to the next step
 def next_step():
+    """Move to the next step in the user preferences stage."""
     st.session_state["step"] += 1
     update_ui()
 
-# Function to move to the next step
 def previous_step():
+    """Move to the previous step in the user preferences stage."""
     st.session_state["step"] -= 1
     update_ui()
 
-# Function to reset the app
 def reset_preferences():
+    """Reset the user preferences and start over."""
     st.session_state["step"] = 1
     st.session_state["answers"] = {}
 
 @st.fragment
 def handle_start():
-    """Render the UI for the start stage."""
+    """ Render the UI for the start stage. """
     # Welcome Message
     st.title(":red[:material/travel_explore:]️ Welcome to HolidayMatch!")
     st.write("Your AI-powered travel planning assistant! Let's find your perfect holiday destination based on your preferences.")
@@ -81,7 +91,12 @@ def handle_start():
 
 @st.fragment
 def handle_user_preferences():
-    """Render the UI for the user preferences stage."""
+    """ Render the UI for the user preferences stage.
+        
+        This stage is responsible for collecting the user preferences for the travel destination.
+        It consists of multiple steps, each step contains a set of questions to collect the user preferences.
+        After the user has answered all questions, the travel agent will make recommendations based on the preferences.
+    """
     st.title('User Preferences')
     st.write('Please provide your travel preferences.')
     # Get user input
@@ -144,14 +159,14 @@ def handle_user_preferences():
                     "title": "Climate",
                     "question": "Do you prefer warm or cooler weather?",
                     "type": "radio",
-                    "options": ["Cool < 10°C", "Warm > 20°C", "Very warm > 30°C", "Doesn’t matter"]
+                    "options": ["Doesn't matter", "Cool < 10°C", "Mild > 10°C", "Warm > 20°C", "Very warm > 30°C"]
                 },
                 {
                     "title": "Destination",
                     "question": "Where would you like to travel?",
                     "type": "radio",
                     "options": ["Stay in Europe", "North America", "South America", "Asia",
-                                "Africa", "Australia / Oceania", "Doesn’t matter"]
+                                "Africa", "Australia / Oceania", "Doesn't matter"]
                 },
             ]
         },
@@ -169,7 +184,7 @@ def handle_user_preferences():
                     "question": "What type of accommodation do you prefer?",
                     "type": "radio",
                     "options": ["Hotel", "Vacation Rental (Airbnb, etc.)", "Hostel",
-                                "Resort", "Camping", "Doesn’t matter"]
+                                "Resort", "Camping", "Doesn't matter"]
                 },
                 {
                     "title": "Budget",
@@ -280,18 +295,28 @@ def handle_user_preferences():
 
 @st.fragment
 def handle_matcher():
-    """Render the UI for the matching stage."""
+    """ Render the UI for the matcher stage.
+
+        In this stage, the matcher will suggest destinations one by one, which are retrieved from the recommendation engine.
+        The user can like or dislike the suggestions. The matcher will provide new suggestions based on the user's feedback or
+        move to the next stage if the user has liked a suggestion.
+        If the user has disliked all suggestions, the matcher will ask the user if they want to try again.
+    """
+    # Ensure that the matcher is available in the session state
+    # If not, show an error message and stop the app.
     if "matcher" not in st.session_state:
         st.error("Matcher not found. Please restart the app.")
         st.stop()
     matcher = st.session_state.matcher
 
-    st.title('We have the following suggestions for you')
-    st.write('Matching your preferences with the best destinations...')
+
 
     # Get a destination suggestion from the matcher
     suggestion: Destination | None = matcher.suggest()
     if suggestion:
+        st.title('We have the following suggestions for you')
+        st.write('Matching your preferences with the best destinations...')
+
         # Create a container for the suggestions
         with st.container(border=True):
             # Display the image for the location
@@ -332,7 +357,8 @@ def handle_matcher():
                     update_ui()
     else:
         # The user did not like any of the suggestions that have been presented to him.
-        st.write("No more suggestions. Would you like to try again?")
+        st.title("Oh no! It seems like you didn't like any of the suggestions.")
+        st.write("Would you like to try again?")
 
         # Provide the option to retrieve new suggestions.
         if st.button("Get new suggestions"):
@@ -349,6 +375,12 @@ def handle_matcher():
 
 @st.fragment
 def handle_present_details():
+    """ Render the UI for the present details stage.
+    
+        This stage is responsible for presenting the details of the matched destination to the user.
+        It displays the location details, such as the name, image, and a brief overview of the destination.
+        Additionally, it provides information about the weather, transportation, and accommodation options.
+    """
     # Load the matched destination
     destination = app_state.matched_destination
     if not destination:
@@ -358,10 +390,13 @@ def handle_present_details():
     # Make use of the helper function 'run_async_task' to retrieve the location details.
     location_details = run_async_task(travel_agent.get_location_details_async, destination.name)
 
+    # Display the title and the image of the destination
+    # The image is retrieved from a remote API.
+    # Remarks:
+    # - As an improvement, the image could be cached to reduce the number of requests.
+    # - Additionally, it could be checked with AI if the image is appropriate or not.
     st.title(f"Nice, it's a match: {destination.name}!")
     st.write(location_details["latitude"], location_details["longitude"])
-
-    # Display the image for the location
     st.image(destination.image_url)
 
     # Use tabs to improve the organization of the content
