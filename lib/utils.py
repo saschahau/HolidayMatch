@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+import streamlit as st
 
 def run_async_task(task, *args, **kwargs):
     """
@@ -31,6 +32,7 @@ async def fetch_recommendations_with_images_async(travel_agent, destination_reco
     # Run the image fetch tasks concurrently
     await asyncio.gather(*(fetch_image(recommendation) for recommendation in destination_recommendations))
 
+@st.cache_data
 def get_question_groups():
     """
     Get the question groups containing the preference options for the travel recommender.
