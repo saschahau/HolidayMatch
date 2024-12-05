@@ -11,10 +11,10 @@ class Agent:
     def __init__(self, openai_key: str, tripadvisor_key: str):
         """
         Initializes the Travel Agent instance.
+        The travel agent is used to abstract the interaction with the recommendation engine and the travel providers.
 
-        Args:
-            openai_key (str): The API key for accessing the recommendation engine (OpenAI API).
-            tripadvisor_key (str): The API key for accessing TripAdvisor (TripAdvisor API).
+        param openai_key: The OpenAI API key.
+        param tripadvisor_key: The TripAdvisor API key.
         """
         self.recommendation_engine = RecommendationEngine(openai_key)
         #self.flight_provider = FlightProvider()
@@ -24,26 +24,45 @@ class Agent:
         """
         Generates travel recommendations based on user preferences.
 
-        Args:
-            preferences (dict): A dictionary of user preferences for the travel destination.
-                Example keys might include "climate", "budget", "activities", etc.
-            user_information (UserInformation): An object that holds the user information.
-            exclude_destinations (list, optional): A list of destinations to exclude from the recommendations.
-                Defaults to None.
+        param preferences: A dictionary of user preferences for the travel destination.
+        param user_information: An object that holds the user information.
+        param exclude_destinations: A list of destinations to exclude from the recommendations.
 
-        Returns:
-            list[Destination]: A list of recommended travel destinations.
+        return: A list of recommended travel destinations.
         """
         return self.recommendation_engine.generate_destination_recommendations(preferences, user_information, exclude_destinations=exclude_destinations)
 
     def get_location_overview(self, location_name, preferences, user_information):
-        """"""
+        """
+        Get the overview of a location.
+
+        param location_name: The name of the location to get the overview for.
+        param preferences: The user preferences for the location.
+        param user_information: The user information.
+
+        return: The overview of the location.        
+        """
         return self.recommendation_engine.generate_destination_overview(location_name, preferences, user_information)
 
     async def get_location_async(self, search_query, category = "geos"):
+        """
+        Get the location details.
+
+        param search_query: The search query to search for locations.
+        param category: The category of the location to search for.
+
+        return: The location details.
+        """
         return await self.trip_advisor.location_search_async(search_query, category)
 
     async def get_location_photo_async(self, location_name):
+        """
+        Get photos of a location.
+
+        param location_name: The name of the location to get photos for.
+
+        return: The photos of the location.
+        """
         location = await self.get_location_async(location_name)
         if "data" in location and location["data"]:
             location_id = location["data"][0]["location_id"]
@@ -54,6 +73,13 @@ class Agent:
             return None
 
     async def get_location_details_async(self, location_name):
+        """
+        Get details of a location.
+
+        param location_name: The name of the location to get details for.
+
+        return: The details of the location.
+        """
         location = await self.get_location_async(location_name)
         if "data" in location and location["data"]:
             location_id = location["data"][0]["location_id"]
