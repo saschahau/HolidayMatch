@@ -15,7 +15,7 @@ import streamlit as st
 from features.matcher import Matcher
 from features.travelagent.models import Destination, UserInfo
 from lib.states import Stage
-from lib.utils import get_current_plus_two_years, run_async_task, fetch_recommendations_with_images_async
+from lib.utils import get_question_groups, run_async_task, fetch_recommendations_with_images_async
 
 # Get the app state from the session state
 if "app_state" not in st.session_state:
@@ -108,94 +108,7 @@ def handle_user_preferences():
         st.session_state["answers"] = {}  # Stores the answers for each criterion
 
     # Questions and criteria
-    question_groups = [
-        {
-            "title": "When",
-            "questions": [
-                {
-                    "title": "Travel Duration",
-                    "question": "How long would you like to travel?",
-                    "type": "radio",
-                    "options": ["1-3 days", "4-7 days", "Longer than 1 week", "Other"]
-                },
-                {
-                    "title": "Year",
-                    "question": "Which year would you like to travel?",
-                    "type": "pills::single",
-                    "options": get_current_plus_two_years()
-                },
-                {
-                    "title": "Month",
-                    "question": "Which month would you like to travel?",
-                    "type": "pills::multi",
-                    "options": ["January", "February", "March", "April", "May", "June",
-                                "July", "August", "September", "October", "November", "December"]
-                },
-            ]
-        },
-        {
-            "title": "What",
-            "questions": [
-                {
-                    "title": "Type of Trip",
-                    "question": "What type of trip do you prefer?",
-                    "type": "multiselect",
-                    "options": ["City trip", "Beach vacation", "Hiking vacation",
-                                "General sports vacation", "Relaxation / SPA vacation",
-                                "Ski vacation / Après-ski"]
-                },
-                {
-                    "title": "Interests",
-                    "question": "What would you like to do most during your trip?",
-                    "type": "multiselect",
-                    "options": ["Culture / Museums", "Hiking / Nature", "Beach / Relaxation", "Party", "Adventure"]
-                },
-            ]
-        },
-        {
-            "title": "Where",
-            "questions": [
-                {
-                    "title": "Climate",
-                    "question": "Do you prefer warm or cooler weather?",
-                    "type": "radio",
-                    "options": ["Doesn't matter", "Cool < 10°C", "Mild > 10°C", "Warm > 20°C", "Very warm > 30°C"]
-                },
-                {
-                    "title": "Destination",
-                    "question": "Where would you like to travel?",
-                    "type": "radio",
-                    "options": ["Stay in Europe", "North America", "South America", "Asia",
-                                "Africa", "Australia / Oceania", "Doesn't matter"]
-                },
-            ]
-        },
-        {
-            "title": "How",
-            "questions": [
-                {
-                    "title": "Travel Companions",
-                    "question": "Who will you be traveling with?",
-                    "type": "radio",
-                    "options": ["Solo", "Couple", "Family (with children)", "Friends", "Group"]
-                },
-                {
-                    "title": "Accommodation Preferences",
-                    "question": "What type of accommodation do you prefer?",
-                    "type": "radio",
-                    "options": ["Hotel", "Vacation Rental (Airbnb, etc.)", "Hostel",
-                                "Resort", "Camping", "Doesn't matter"]
-                },
-                {
-                    "title": "Budget",
-                    "question": "How much would you like to spend for transportation and the accommodation?",
-                    "description": "Select your budget range",
-                    "type": "radio",
-                    "options": ["Under CHF 500", "CHF 500 - CHF 1000", "CHF 1000 - CHF 2500", "More than CHF 2500"]
-                }
-            ]
-        }
-    ]
+    question_groups = get_question_groups()
 
     # Display the current question based on the step
     current_step = st.session_state["step"]

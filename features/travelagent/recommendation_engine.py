@@ -10,11 +10,14 @@ from features.travelagent.models import Destination
 class RecommendationEngine:
     """ Recommendation Engine class to interact with the OpenAI API."""
     def __init__(self, api_key: str):
+        """
+        Initialize the Recommendation Engine with the OpenAI API key.
+
+        :param api_key: The OpenAI API key.
+        """
         openai.api_key = api_key
         # Define a list to store the responses
         self.response_history = list()
-        # Define the tokens used by the AI model to control the costs
-        self.__tokes_used = dict()
         # Define the function signature to get structured suggestions from the AI model
         self.__function_definition = {
             "name": "get_travel_recommendations",
@@ -55,6 +58,8 @@ class RecommendationEngine:
         :param user_information: The user information
         :param model: The AI model to use for generating recommendations (default is set to 'gpt-4o').
         :param exclude_destinations: The destinations to exclude from the recommendations.
+
+        returns: The travel destination recommendations. (List of Destination objects)
         """
 
         # Prepare the prompt for the AI model
@@ -88,8 +93,11 @@ class RecommendationEngine:
             output = response.choices[0].message.function_call.arguments
             json_result = json.loads(output)
 
+        # Validate the response and convert it into a list of Destination objects
+        # by using the TypeAdapter class of Pydantic.
         recommendations = TypeAdapter(List[Destination]).validate_python(json_result["destinations"])
 
+        # Store the response in the response history
         content = {
             'timestamp': datetime.now(),
             'preferences': preferences,
@@ -100,6 +108,16 @@ class RecommendationEngine:
         return recommendations
 
     def generate_destination_overview(self, destination, preferences, user_information, model = "gpt-4o"):
+        """
+        Generate a short and concise overview about the travel destination the user asks for.
+
+        :param destination: The travel destination to provide an overview for.
+        :param preferences: The user preferences for the travel destination.
+        :param user_information: The user information.
+        :param model: The AI model to use for generating the overview (default is set to 'gpt-4o').
+
+        returns: The overview about the travel destination.
+        """
         system_instructions = f"""Act as experienced travel agent and provide a short and concise overview about the travel destination, the user asks for."""
         prompt = f"""
             Destination: {destination}.
