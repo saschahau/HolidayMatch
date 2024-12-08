@@ -3,6 +3,7 @@ from typing import List
 from pydantic import BaseModel
 
 class Destination(BaseModel):
+    """Model for a Destination."""
     name: str
     description: str
     climate: str
@@ -17,6 +18,7 @@ class Destination(BaseModel):
     image_url: str
 
 class UserInfo(BaseModel):
+    """Model for User Information."""
     name: str
     age: int
     gender: str

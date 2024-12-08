@@ -12,6 +12,7 @@ Example:
 import pandas as pd
 import streamlit as st
 
+from components.weather_component import weather_component
 from features.matcher import Matcher
 from features.travelagent.models import Destination, UserInfo
 from lib.states import Stage
@@ -71,7 +72,7 @@ def handle_start():
     with st.container(border=True):
         st.subheader("Before we start, we'd like to know you better!")
         name = st.text_input("Please enter your name")
-        age = st.slider("Please enter your age", 0, 120, 20)
+        age = st.slider("Please enter your age", 18, 99, 20)
         gender = st.pills("Gender", ["Female", "Male", "Other", "I'd rather not to say"], selection_mode='single')
 
         # Intro Message after user information input
@@ -117,7 +118,15 @@ def handle_user_preferences():
         if current_step <= len(question_groups):
             group = question_groups[current_step - 1]
             st.header(f"Step {current_step}: {group['title']}")
-            st.write()
+
+            # Show the weather component for the "When" group to support the user
+            # with with weather information for the home location.
+            if group["title"] == "When":
+                st.markdown("""To help you make the best decision, we provide you with the predicted weather information for your home location.
+                This way, you can consider the weather conditions when planning your trip.""")
+                weather_component("Zurich")
+
+            # Divider for visual separation
             st.divider()
 
             # Iterate through the questions in the group and collect the answers
@@ -309,11 +318,10 @@ def handle_present_details():
     # - As an improvement, the image could be cached to reduce the number of requests.
     # - Additionally, it could be checked with AI if the image is appropriate or not.
     st.title(f"Nice, it's a match: {destination.name}!")
-    st.write(location_details["latitude"], location_details["longitude"])
     st.image(destination.image_url)
 
     # Use tabs to improve the organization of the content
-    tabs = ["Overview", "Your Trip"]
+    tabs = ["Destination Overview", "Your Feedback"]
     tab1, tab2 = st.tabs(tabs)
 
     with tab1:
@@ -327,25 +335,15 @@ def handle_present_details():
         st.markdown(destination_overview, unsafe_allow_html=True)
 
     with tab2:
-        st.header("Your trip")
-        st.write("All information relevant to your trip.")
+        st.header("Your Feedback")
+        
+        st.write("We'd love to hear your feedback about HolidayMatch.")
 
-        st.subheader("Weather")
-        # Mock temperature data for Ibiza for the months of June, July, and August
-        temperature_data = {
-            "Day": list(range(1, 32)),  # Assuming 31 days for each month
-            "July": [28 + (i % 2) for i in range(31)],  # Example data for July
-        }
-
-        # Convert the data into a DataFrame
-        df = pd.DataFrame(temperature_data)
-
-        # Streamlit Line Chart
-        st.write(f"**Temperature Data prediction for {destination.name}**")
-        st.line_chart(df.set_index("Day"))
-
-        st.subheader("Transportation")
-        st.write("tbd...")
-
-        st.subheader("Accommodation")
-        st.write("tbd...")
+        sentiment_mapping = ["one", "two", "three", "four", "five"]
+        selected = st.feedback("stars")
+        if selected is not None:
+            st.markdown(f"You selected {sentiment_mapping[selected]} star(s).")
+            if sentiment_mapping[selected] == "one":
+                st.write("We're sorry to hear that. Please let us know how we can improve.")                
+            elif sentiment_mapping[selected] == "five":
+                st.write("We're glad you enjoyed your experience with HolidayMatch!")
