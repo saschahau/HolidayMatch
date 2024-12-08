@@ -4,6 +4,7 @@ from features.travelagent.models import UserInfo
 
 class AppState:
     """
+    A class to represent the state of the application.
 
     State pattern derived from: https://auth0.com/blog/state-pattern-in-python (18.11.2024)
     """
@@ -31,7 +32,13 @@ class AppState:
 
     @stage.setter
     def stage(self, stage: Stage):
-        """ Set a new stage. """
+        """ 
+        Set a new stage. 
+
+        :param stage: The new stage to set.
+
+        :raises TypeError: If the stage is not of type Stage.        
+        """
         if isinstance(stage, Stage):
             self._stage = stage
         else:
@@ -44,7 +51,13 @@ class AppState:
 
     @user_info.setter
     def user_info(self, user_info: UserInfo):
-        """ Set the user information. """
+        """ 
+        Set the user information. 
+        
+        :param user_info: The user information to set.
+
+        :raises TypeError: If the user information is not of type UserInfo.        
+        """
         # Check if the user information is valid.
         # If not, raise an error.
         if user_info is not None and not isinstance(user_info, UserInfo):
