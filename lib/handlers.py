@@ -291,8 +291,16 @@ def handle_matcher():
                     user_information=app_state.user_info,
                     exclude_destinations = matcher.disliked_destinations)
                 if destination_recommendations:
+                    # Fetch images for the destinations asynchronously
+                    run_async_task(fetch_recommendations_with_images_async, travel_agent, destination_recommendations)
+
+                    # Replace the suggestions in the matcher with the new suggestions
                     matcher.replace_suggestions(destination_recommendations)
+                    
+                    # Update the matcher in the session state
                     st.session_state.matcher = matcher
+
+            # Update the UI to show the next suggestion
             update_ui()
 
 @st.fragment
