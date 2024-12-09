@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 
 @st.cache_data
 def get_weather_data():
@@ -36,7 +36,7 @@ def prepare_data(df):
     # Fill missing values with the previous value
     # This is a simple way to fill missing values in time series data.
     # In practice, more sophisticated methods like interpolation or using a model to predict missing values can be used.
-    # For simplicity, we will use forward fill here.
+    # For simplicity, we will use forward fill (ffill) here.
     df = df.ffill()
 
     return df
@@ -74,13 +74,15 @@ def create_features(df):
     # The sine and cosine features are added to the DataFrame as new columns.
     # 
     # The idea has been derived from the following articles:
-    # -     https://python.plainenglish.io/weather-prediction-with-machine-learning-90e04d86cea7
-    # -     Bescond, P.-L. (2020). Cyclical features encoding, it’s about time! Towards Data Science. https://towardsdatascience.com/cyclical-features-encoding-its-about-time-ce23581845ca
-
+    # -  Ejembi, E. (2024, March 25). Weather Prediction with Machine Learning. https://python.plainenglish.io/weather-prediction-with-machine-learning-90e04d86cea7
+    # -  Bescond, P.-L. (2020). Cyclical features encoding, it’s about time! Towards Data Science. https://towardsdatascience.com/cyclical-features-encoding-its-about-time-ce23581845ca
     df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
     df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
 
     # The day of year is adjusted for leap years to account for the extra day in February.
+    # For this, we can use the .is_leap_year boolean indicator provided by Pandas.
+    # Reference:
+    # - Pandas. (n.d.). pandas.Series.dt.is_leap_year. API reference. https://pandas.pydata.org/docs/reference/api/pandas.Series.dt.is_leap_year.html
     days_in_year = np.where(df.index.is_leap_year, 366, 365)
     df["day_of_year_sin"] = np.sin(2 * np.pi * df["day_of_year"] / days_in_year)
     df["day_of_year_cos"] = np.cos(2 * np.pi * df["day_of_year"] / days_in_year)
@@ -103,19 +105,30 @@ def train_model(df, feature_columns = ["day_of_year_sin", "day_of_year_cos", "mo
 
     # Split the data into training and test sets
     # We will use the default value of 5
+    # The TimeSeriesSplit is used to split the data in a time series aware manner.
+    # References: 
+    # - Scikit-Learn. (n.d.). TimeSeriesSplit. API reference. https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html
+    # - Scikit-Learn. (n.d.). 3.1.2.6.1 Time Series Split. User Guide. https://scikit-learn.org/stable/modules/cross_validation.html#time-series-split
     tscv = TimeSeriesSplit(n_splits=5)
 
     # Train a Random Forest model
     # We will use the default value of 100 trees in the forest
     # Random state ensures the results are consistent across different runs of the code.
     # The number 42 is chosen, since SciKit-Learn defines it as popular choice in their documentation.
-    # Reference: https://scikit-learn.org/stable/glossary.html#term-random_state
+    # Reference: Scikit-Learn. (n.d.). Glossary of Common Terms and API Elements. https://scikit-learn.org/stable/glossary.html#term-random_state
     model = RandomForestRegressor(n_estimators=100, random_state=42)
 
     # We use the root mean squared error (RMSE) as the evaluation metric.
     # The RMSE is a widely used metric in machine learning to evaluate the accuracy of a model's predictions.
     # It penalizes large errors more than small errors.
     # A lower RMSE indicates a better model.
+    # 
+    # References:
+    # - GeeksForGeeks. (2024, November 2). Step-by-Step Guide to Calculating RMSE Using Scikit-learn. https://www.geeksforgeeks.org/step-by-step-guide-to-calculating-rmse-using-scikit-learn
+    # - Penmetsa, C. (2024, January 1). Machine learnning using Scikit-Learn (sklearn) - Evaluating Regression model using metrics. Medium. https://medium.com/codenx/machine-learning-using-scikit-learn-sklearn-evaluating-regression-model-using-metrics-0414107a7e22
+    # - Scikit-Learn. (n.d.). 3.3. Model evaluation: quantifying the quality of predictions. User Guide. https://scikit-learn.org/stable/modules/model_evaluation.html
+    # - Scikit-Learn. (n.d.). 3.3.1. Mean squared error. User Guide. https://scikit-learn.org/stable/modules/model_evaluation.html#mean-squared-error
+    # - Scikit-Learn. (n.d.). root_mean_quared_error. API reference. https://scikit-learn.org/stable/modules/generated/sklearn.metrics.root_mean_squared_error.html#sklearn.metrics.root_mean_squared_error
     rmse_scores = []
 
     # Train the model using time series cross validation
@@ -131,7 +144,7 @@ def train_model(df, feature_columns = ["day_of_year_sin", "day_of_year_cos", "mo
         predictions = model.predict(X_test)
 
         # Calculate and store the root mean squared error (RMSE)
-        rmse = np.sqrt(mean_squared_error(y_test, predictions))
+        rmse = root_mean_squared_error(y_test, predictions)
         rmse_scores.append(rmse)
 
     # Calculate the average RMSE

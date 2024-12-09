@@ -9,7 +9,6 @@ Example:
         st.title('Welcome to HolidayMatch')
         st.write('Your AI-powered travel assistant!')
 """
-import pandas as pd
 import streamlit as st
 
 from components.weather_component import weather_component

@@ -6,7 +6,12 @@ class AppState:
     """
     A class to represent the state of the application.
 
-    State pattern derived from: https://auth0.com/blog/state-pattern-in-python (18.11.2024)
+    The state pattern is used to manage the state of the application. It allows the application to change its behavior when its internal
+    state changes. The state pattern is useful in our case since the application has different stages, and depends on multiple factors
+    such as user input, external API responses, and stage information.
+
+    References:
+    - Lavsani, A. (2023, Nov 14). Design Patterns in Python: State. The Magic of Transitions. https://medium.com/@amirm.lavasani/design-patterns-in-python-state-8916b2f65f69
     """
     def __init__(self):
         self.__anonymous = True 

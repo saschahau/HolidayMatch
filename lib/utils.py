@@ -11,6 +11,9 @@ def run_async_task(task, *args, **kwargs):
     :param kwargs: The keyword arguments to pass to the task
 
     returns: The result of the asynchronous task.
+
+    Inspired by:
+    - Solomon, B. (2019, January 16). Async IO in Python: A Complete Walkthrough. https://realpython.com/async-io-python
     """
     return asyncio.run(task(*args, **kwargs))
 
@@ -20,8 +23,12 @@ async def fetch_recommendations_with_images_async(travel_agent, destination_reco
 
     :param: travel_agent: The travel agent to use for fetching images.
     :param: destination_recommendations: The destination recommendations to fetch images for.
+
+    Inspired by:
+    - Solomon, B. (2019, January 16). Async IO in Python: A Complete Walkthrough. https://realpython.com/async-io-python
     """
     async def fetch_image(recommendation):
+        # Fetch the location photo asynchronously from the travel agent
         photos = await travel_agent.get_location_photo_async(recommendation.name)
         if photos and "data" in photos and photos["data"]:
             first_photo = photos["data"][0]
@@ -29,7 +36,8 @@ async def fetch_recommendations_with_images_async(travel_agent, destination_reco
         else:
             recommendation.image_url = None  # Set to None if no image is found
 
-    # Run the image fetch tasks concurrently
+    # Pass a list of awaitables and upack them with the asterix operator (*).
+    # Then, await for all of them to be completed.
     await asyncio.gather(*(fetch_image(recommendation) for recommendation in destination_recommendations))
 
 @st.cache_data
