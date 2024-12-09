@@ -23,7 +23,9 @@ def app():
         try:
             # Load the API keys from the secrets.toml file.
             # The secrets.toml file is available in the Streamlit cloud deployment.
-            # Path to secrets.toml
+            #
+            # References: 
+            # - Streamlit. (2024). Secrets management for your Community Cloud app. https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/secrets-management
             secrets_path = ".streamlit/secrets.toml"
             if os.path.exists(secrets_path):
                 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -53,16 +55,8 @@ def app():
             openai_key=OPENAI_API_KEY,
             tripadvisor_key=TRIPADVISOR_API_KEY
         )
-    
-    # Import the handlers after the app state and travel agent are instantiated
-    from lib.handlers import (
-        handle_start, 
-        handle_user_preferences, 
-        handle_matcher,
-        handle_present_details
-    )
 
-    # Handler mapping for the different stages.
+    # Import the handlers after the app state and travel agent are instantiated
     # Each stage has a corresponding handler function that is called to render the UI.
     # The handler functions are defined in the lib/handlers.py file.
     # This principle is used to separate the UI logic from the main app logic.
@@ -70,6 +64,19 @@ def app():
     # With this pattern, we can easily add new stages or modify the existing ones without affecting the main app logic.
     # It also makes the code more modular and thus, easier to maintain. Additionally, we have no if-else hell in the main app logic
     # to render the UI, which makes it easier to read and understand.
+    # 
+    # It is inspired by the dictionary dispatch pattern to avoid a long chain of if-else statements.
+    #
+    # References: 
+    # - Martin. (2023, February 1). Dictionary Dispatch Pattern in Python. https://martinheinz.dev/blog/90 
+    from lib.handlers import (
+        handle_start, 
+        handle_user_preferences, 
+        handle_matcher,
+        handle_present_details
+    )
+
+    # Mapping of the different stages to their corresponding handler functions
     stage_handlers = {
         Stage.START: handle_start,
         Stage.USER_PREFERENCES: handle_user_preferences,

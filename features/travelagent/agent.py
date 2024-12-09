@@ -17,7 +17,6 @@ class Agent:
         param tripadvisor_key: The TripAdvisor API key.
         """
         self.recommendation_engine = RecommendationEngine(openai_key)
-        #self.flight_provider = FlightProvider()
         self.trip_advisor = TripAdvisor(tripadvisor_key)
 
     def get_travel_recommendations(self, preferences, user_information, exclude_destinations = None):
@@ -63,9 +62,11 @@ class Agent:
 
         return: The photos of the location.
         """
+        # Get the location to get the location ID
         location = await self.get_location_async(location_name)
         if "data" in location and location["data"]:
-            location_id = location["data"][0]["location_id"]
+            location_id = location["data"][0]["location_id"]            
+            # Get the photos of the location
             photos = await self.trip_advisor.location_photos_async(location_id)
             return photos
         else:
@@ -80,14 +81,13 @@ class Agent:
 
         return: The details of the location.
         """
+        # Get the location to get the location ID
         location = await self.get_location_async(location_name)
         if "data" in location and location["data"]:
             location_id = location["data"][0]["location_id"]
+            # Get the details of the location
             details = await self.trip_advisor.location_details_async(location_id)
             return details
         else:
             print("Location not found")
             return None
-
-    async def get_flights_to_destination(self):
-        pass

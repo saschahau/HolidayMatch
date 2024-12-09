@@ -1,7 +1,12 @@
 from features.travelagent.models import Destination
 
 class Matcher:
-    """A class to represent a Matcher."""
+    """
+    A class to represent a Matcher.
+    
+    The matcher is used to manage the recommendations and the user's preferences.
+    Ultimately, the matcher is responsible for suggesting destinations to the user and managing the user's feedback.
+    """
     def __init__(self, recommendations):
         self.__current_index = 0
         self.__destination_recommendations = recommendations

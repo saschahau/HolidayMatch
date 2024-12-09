@@ -18,7 +18,8 @@ class RecommendationEngine:
         openai.api_key = api_key
         # Define a list to store the responses
         self.response_history = list()
-        # Define the function signature to get structured suggestions from the AI model
+        # Define the function signature to get structured suggestions from the AI model.
+        # According to: https://platform.openai.com/docs/guides/function-calling#function-definitions
         self.__function_definition = {
             "name": "get_travel_recommendations",
             "description": "Returns a structured list of travel destination suggestions.",
@@ -71,27 +72,19 @@ class RecommendationEngine:
         if exclude_destinations is not None:
             prompt += f"These destinations have already been presented but are no option for the user: {", ".join(exclude_destinations)}"
 
-        DEV_MODE = False
-        if DEV_MODE:
-            data_folder = "data"
-            file_path = os.path.join(data_folder, f"suggestions.json")
+        # Get the response from OpenAI
+        response = openai.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
+                {"role": "user", "content": prompt},
+            ],
+            functions=[self.__function_definition],
+            function_call = {"name": "get_travel_recommendations"}
 
-            # Save the json_result into the suggestions.json file
-            with open(file_path, 'r') as json_file:
-                json_result = json.load(json_file)
-        else:
-            response = openai.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system","content": "Act as experienced travel agent helping students to find destinations for their holidays. You will get the preferences from the students and suggest them the destination by trying to fulfill their preferences. Always return responses in JSON format."},
-                    {"role": "user", "content": prompt},
-                ],
-                functions=[self.__function_definition],
-                function_call = {"name": "get_travel_recommendations"}
-
-            )
-            output = response.choices[0].message.function_call.arguments
-            json_result = json.loads(output)
+        )
+        output = response.choices[0].message.function_call.arguments
+        json_result = json.loads(output)
 
         # Validate the response and convert it into a list of Destination objects
         # by using the TypeAdapter class of Pydantic.
@@ -104,7 +97,7 @@ class RecommendationEngine:
             'response': recommendations
         }
         self.response_history.append(content)
-
+        
         return recommendations
 
     def generate_destination_overview(self, destination, preferences, user_information, model = "gpt-4o"):
@@ -135,4 +128,5 @@ class RecommendationEngine:
             ]
         )
         content = response.choices[0].message.content
+
         return content
