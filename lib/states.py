@@ -18,7 +18,7 @@ class AppState:
         self.stage = Stage.START
         self.user_preferences = None
         self.matched_destination = None
-        self.itinerary = None # Will be implemented if time allows.
+        self.itinerary = None # Not implemented yet
         self.user_info = None
 
     def reset(self):
