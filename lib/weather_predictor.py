@@ -72,7 +72,7 @@ def create_features(df):
     # Where x is the value of the feature (e.g., month or day of year) and period is the total number of values in the feature (e.g., 12 for months).
     # This encoding allows the model to learn the cyclical nature of the data and make better predictions.
     # The sine and cosine features are added to the DataFrame as new columns.
-    # 
+    
     # The idea has been derived from the following articles:
     # -  Ejembi, E. (2024, March 25). Weather Prediction with Machine Learning. https://python.plainenglish.io/weather-prediction-with-machine-learning-90e04d86cea7
     # -  Bescond, P.-L. (2020). Cyclical features encoding, it’s about time! Towards Data Science. https://towardsdatascience.com/cyclical-features-encoding-its-about-time-ce23581845ca
@@ -112,6 +112,9 @@ def train_model(df, feature_columns = ["day_of_year_sin", "day_of_year_cos", "mo
     tscv = TimeSeriesSplit(n_splits=5)
 
     # Train a Random Forest model
+    # ChatGPT suggested to use the RandomForestRegressor model for this task (ChatGPT, 2024). The suggestion
+    # has been confirmed with other sources Koehrsen (2017).
+    # Reference: Koehrsen, W. (2017, December 27). Random Forest in Python. Towards Data Science. https://towardsdatascience.com/random-forest-in-python-24d0893d51c0
     # We will use the default value of 100 trees in the forest
     # Random state ensures the results are consistent across different runs of the code.
     # The number 42 is chosen, since SciKit-Learn defines it as popular choice in their documentation.

@@ -1,5 +1,5 @@
+# Source: Pydantic. (n.d.). Documentation for version: v2.10.3. https://docs.pydantic.dev/latest
 from typing import List
-
 from pydantic import BaseModel
 
 class Destination(BaseModel):
