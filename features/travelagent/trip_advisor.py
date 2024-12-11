@@ -1,3 +1,6 @@
+# References: 
+# - HTTPX. (n.d.). HTTPX: A next-generation HTTP client for Python. HTTPX. https://www.python-httpx.org/
+# - TripAdvisor LLC. (n.d.). API Reference. https://tripadvisor-content-api.readme.io/reference/overview
 import httpx
 
 class TripAdvisor:
