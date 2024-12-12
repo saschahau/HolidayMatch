@@ -332,6 +332,10 @@ def handle_present_details():
     tabs = ["Destination Overview", "Your Feedback"]
     tab1, tab2 = st.tabs(tabs)
 
+        # Use tabs to improve the organization of the content
+    tabs = ["Destination Overview", "Your Feedback"]
+    tab1, tab2 = st.tabs(tabs)
+
     with tab1:
         with st.spinner("Generating destination overview..."):
             # Retrieve a destination summary from the recommendation engine.
@@ -339,19 +343,26 @@ def handle_present_details():
                                                                       preferences=app_state.user_preferences,
                                                                       user_information=app_state.user_info
                                                                       )
+            # Remove leading and trailing whitespaces
             destination_overview = destination_overview.strip()
+
+        # Display the destination overview
         st.markdown(destination_overview, unsafe_allow_html=True)
 
     with tab2:
-        st.header("Your Feedback")
-        
+        # Ask user for feedback
+        st.header("Your Feedback")        
         st.write("We'd love to hear your feedback about HolidayMatch.")
 
+        # Display the star rating component
         sentiment_mapping = ["one", "two", "three", "four", "five"]
         selected = st.feedback("stars")
         if selected is not None:
+            # Display the selected sentiment
             st.markdown(f"You selected {sentiment_mapping[selected]} star(s).")
-            if sentiment_mapping[selected] == "one":
+
+            # Display a message based on the sentiment
+            if sentiment_mapping[selected] == "one":                
                 st.write("We're sorry to hear that. Please let us know how we can improve.")                
             elif sentiment_mapping[selected] == "five":
                 st.write("We're glad you enjoyed your experience with HolidayMatch!")
