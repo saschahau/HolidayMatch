@@ -87,7 +87,7 @@ def get_question_groups():
                     "title": "Interests",
                     "question": "What would you like to do most during your trip?",
                     "type": "multiselect",
-                    "options": ["Culture / Museums", "Hiking / Nature", "Beach / Relaxation", "Party", "Adventure"]
+                    "options": ["Culture / Museums", "Hiking / Nature", "Beach / Relaxation", "Party", "Sports", "Adventure"]
                 },
             ]
         },
