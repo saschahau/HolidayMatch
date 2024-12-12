@@ -183,6 +183,7 @@ def handle_user_preferences():
                 if st.button("Restart", use_container_width=True):
                     # Reset the user preferences and start over
                     reset_preferences()
+                    update_ui()
 
             with col2:
                 if st.button('Get suggestions', type="primary", icon=":material/model_training:", use_container_width=True):
