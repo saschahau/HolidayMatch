@@ -332,7 +332,7 @@ def handle_present_details():
     tabs = ["Destination Overview", "Your Feedback"]
     tab1, tab2 = st.tabs(tabs)
 
-        # Use tabs to improve the organization of the content
+    # Use tabs to improve the organization of the content
     tabs = ["Destination Overview", "Your Feedback"]
     tab1, tab2 = st.tabs(tabs)
 
